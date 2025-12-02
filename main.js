@@ -12,6 +12,8 @@ const epEl = document.getElementById("ep");
 const fpsEl = document.getElementById("fps");
 const inferenceTimeEl = document.getElementById("inferenceTime");
 
+const videoSourceSelector = document.getElementById('videosource');
+
 let session = null;
 let ep = "wasm";
 let webcamStream = null;
@@ -70,9 +72,9 @@ const smoothedMask = new Float32Array(ppSize); // Buffer for temporal smoothing
 function filterLargestBlob(mask, width, height) {
     // Reset visited buffer
     ppVisited.fill(0);
-    
+
     let currentLabel = 0;
-    const counts = []; 
+    const counts = [];
 
     for (let i = 0; i < ppSize; i++) {
         if (mask[i] > 0.5 && ppVisited[i] === 0) {
@@ -127,7 +129,7 @@ function filterLargestBlob(mask, width, height) {
                     }
                 }
             }
-            
+
             counts.push({ label: currentLabel, count: count });
             currentLabel++;
         }
@@ -213,7 +215,7 @@ async function runInference(sourceElement) {
 
     // Temporal Smoothing: Blend current frame with previous frames
     // Higher alpha = faster reaction, Lower alpha = smoother but more lag
-    const alpha = 0.6; 
+    const alpha = 0.6;
     for (let i = 0; i < ppSize; i++) {
         smoothedMask[i] = (flat[i] * alpha) + (smoothedMask[i] * (1 - alpha));
     }
@@ -271,8 +273,13 @@ async function webcamLoop() {
 // Start webcam
 async function startWebcam() {
     try {
+        const selectedDeviceId = videoSourceSelector.value;
+        const videoConstraints = selectedDeviceId && selectedDeviceId !== ''
+            ? { deviceId: selectedDeviceId, width: { ideal: 1280 }, height: { ideal: 720 } }
+            : { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: "environment" };
+        
         webcamStream = await navigator.mediaDevices.getUserMedia({
-            video: { width: { ideal: 1280 }, height: { ideal: 720 } }, // Request higher resolution
+            video: videoConstraints,
             audio: false,
         });
         video.srcObject = webcamStream;
@@ -292,6 +299,29 @@ async function startWebcam() {
     } catch (err) {
         statusEl.textContent = `Webcam error: ${err.message}`;
         statusEl.classList.add("error");
+    }
+}
+
+async function initializeCameras() {
+    const tempStream = await navigator.mediaDevices.getUserMedia({ video: true });
+    tempStream.getTracks().forEach(track => track.stop());
+
+    await enumerateCameraDevices();
+}
+
+async function enumerateCameraDevices() {
+    let cameras = await navigator.mediaDevices.enumerateDevices();
+
+    videoSourceSelector.innerHTML = '';
+
+    for (let i = 0; i < cameras.length; i++) {
+        let camera = cameras[i];
+        if (camera.kind === 'videoinput') {
+            let option = document.createElement('option');
+            option.value = camera.deviceId;
+            option.text = camera.label || `Camera ${i + 1}`;
+            videoSourceSelector.appendChild(option);
+        }
     }
 }
 
@@ -345,6 +375,8 @@ async function main() {
             await new Promise((resolve) => setTimeout(resolve, 100));
         }
 
+        await initializeCameras();
+
         const ep = "wasm";
         epEl.textContent = ep.toUpperCase();
 
@@ -369,6 +401,14 @@ async function main() {
 
         webcamBtn.addEventListener("click", startWebcam);
         stopBtn.addEventListener("click", stopWebcam);
+        
+        // Handle camera selection change
+        videoSourceSelector.addEventListener("change", async () => {
+            if (webcamStream) {
+                stopWebcam();
+                await startWebcam();
+            }
+        });
     } catch (err) {
         statusEl.textContent = `❌ Error: ${err.message}`;
         statusEl.classList.add("error");

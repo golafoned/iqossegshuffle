@@ -75,6 +75,34 @@
         color: #333;
       }
       
+      select {
+        padding: 10px 16px;
+        font-size: 14px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        background: white;
+        color: #333;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-weight: 500;
+        outline: none;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23667eea' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        padding-right: 36px;
+      }
+      
+      select:hover {
+        border-color: #667eea;
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+      }
+      
+      select:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+      
       .status {
         padding: 15px;
         background: #e3f2fd;
@@ -155,6 +183,10 @@
       <video id="video" class="hidden" autoplay playsinline muted></video>
       
       <div class="info">
+        <div style="margin-bottom: 12px;">
+          <label for="videosource" style="display: block; margin-bottom: 6px; font-weight: 600; color: #555;">📹 Camera:</label>
+          <select id="videosource"></select>
+        </div>
         <strong>Execution Provider:</strong> <span id="ep">-</span><br>
         <strong>FPS:</strong> <span id="fps">-</span><br>
         <strong>Inference Time:</strong> <span id="inferenceTime">-</span>
