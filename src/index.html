@@ -9,36 +9,36 @@
 </head>
 
 <body>
-  <h1>🔍 IQOS Segmentation</h1>
+  <h1>IQOS ILUMA PRIME</h1>
 
   <div class="container">
     <div class="controls">
       <input id="fileInput" type="file" accept="image/*" />
-      <button id="webcamBtn">📹 Start Webcam</button>
-      <button id="stopBtn" class="hidden">⏹️ Stop</button>
+      <label for="fileInput" class="file-upload-btn">📁 Upload</label>
+      <select id="videosource"></select>
+      <button id="webcamBtn">📹 Webcam</button>
+      <button id="stopBtn" class="hidden">⏹ Stop</button>
     </div>
 
     <div id="status" class="status">Loading model...</div>
 
     <div class="canvas-wrapper">
-      <canvas id="canvas" width="320" height="320"></canvas>
+      <canvas id="canvas" width="320" height="480"></canvas>
     </div>
 
     <video id="video" class="hidden" autoplay playsinline muted></video>
 
     <div class="info">
-      <div style="margin-bottom: 12px;">
-        <label for="videosource" style="display: block; margin-bottom: 6px; font-weight: 600; color: #555;">📹
-          Camera:</label>
-        <select id="videosource"></select>
+      <div class="control-group">
+        <input type="color" id="segmentationMaskColorPicker" title="Mask Color">
+        <input type="range" id="confidencePicker" min="0" max="1" step="0.01" title="Confidence">
       </div>
-      <div>
-        <input type="color" id="segmentationMaskColorPicker">
-        <input type="range" id="confidencePicker" min="0" max="1" step="0.01">
-      </div>
-      <strong>Execution Provider:</strong> <span id="ep">-</span><br>
-      <strong>FPS:</strong> <span id="fps">-</span><br>
-      <strong>Inference Time:</strong> <span id="inferenceTime">-</span>
+    </div>
+
+    <div class="stats">
+      <div><strong>EP:</strong> <span id="ep">-</span></div>
+      <div><strong>FPS:</strong> <span id="fps">-</span></div>
+      <div><strong>Time:</strong> <span id="inferenceTime">-</span></div>
     </div>
   </div>
 
