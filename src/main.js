@@ -302,7 +302,7 @@ async function startWebcam() {
             audio: false,
         });
         video.srcObject = webcamStream;
-        video.classList.remove("hidden");
+        video.classList.add("hidden");
 
         await video.play();
 
@@ -354,8 +354,8 @@ function stopWebcam() {
         cancelAnimationFrame(animationId);
         animationId = null;
     }
-
     video.classList.add("hidden");
+    video.srcObject = null;
     webcamBtn.classList.remove("hidden");
     stopBtn.classList.add("hidden");
     fileInput.disabled = false;
