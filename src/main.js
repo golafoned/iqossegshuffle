@@ -12,7 +12,9 @@ const epEl = document.getElementById("ep");
 const fpsEl = document.getElementById("fps");
 const inferenceTimeEl = document.getElementById("inferenceTime");
 
-const videoSourceSelector = document.getElementById('videosource');
+const videoSourceSelectorEl = document.getElementById('videosource');
+const segmentationMaskColorPickerEl = document.getElementById('segmentationMaskColorPicker');
+const confidencePickerEl = document.getElementById('confidencePicker');
 
 let session = null;
 let ep = "wasm";
@@ -20,12 +22,28 @@ let webcamStream = null;
 let animationId = null;
 let lastFrameTime = 0;
 
+let currentMaskColor = '#ff0000';
+let currentConfidence = 0.5;
+
 // Offscreen canvas for model input resizing
 const modelCanvas = document.createElement("canvas");
 modelCanvas.width = MODEL_SIZE;
 modelCanvas.height = MODEL_SIZE;
 const modelCtx = modelCanvas.getContext("2d", { willReadFrequently: true });
 
+function hexToRgbA(hex) {
+    if (/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{8})$/.test(hex)) {
+        let r = parseInt(hex.slice(1, 3), 16);
+        let g = parseInt(hex.slice(3, 5), 16);
+        let b = parseInt(hex.slice(5, 7), 16);
+        let a = 255;
+        if (hex.length === 9) {
+            a = parseInt(hex.slice(7, 9), 16);
+        }
+        return [r, g, b, a];
+    }
+    throw new Error('Bad Hex');
+}
 // ONNX Runtime is loaded from CDN as global 'ort' object
 
 // Configure WASM files location
@@ -77,7 +95,7 @@ function filterLargestBlob(mask, width, height) {
     const counts = [];
 
     for (let i = 0; i < ppSize; i++) {
-        if (mask[i] > 0.5 && ppVisited[i] === 0) {
+        if (mask[i] > currentConfidence && ppVisited[i] === 0) {
             let stackPtr = 0;
             ppStack[stackPtr++] = i;
             ppVisited[i] = 1;
@@ -167,14 +185,15 @@ function filterLargestBlob(mask, width, height) {
 function createMaskOverlay(mask, alpha = 0.5) {
     const img = new ImageData(MODEL_SIZE, MODEL_SIZE);
     const d = img.data;
+    const [r, g, b, a] = hexToRgbA(currentMaskColor);
     for (let i = 0, p = 0; i < mask.length; i++, p += 4) {
         const m = mask[i];
         if (m > 0.5) {
             // Red overlay
-            d[p] = 255; // R
-            d[p + 1] = 0; // G
-            d[p + 2] = 0; // B
-            d[p + 3] = 255 * alpha; // A
+            d[p] = r; // R
+            d[p + 1] = g; // G
+            d[p + 2] = b; // B
+            d[p + 3] = a * alpha; // A
         } else {
             d[p + 3] = 0; // Transparent
         }
@@ -273,11 +292,11 @@ async function webcamLoop() {
 // Start webcam
 async function startWebcam() {
     try {
-        const selectedDeviceId = videoSourceSelector.value;
+        const selectedDeviceId = videoSourceSelectorEl.value;
         const videoConstraints = selectedDeviceId && selectedDeviceId !== ''
             ? { deviceId: selectedDeviceId, width: { ideal: 1280 }, height: { ideal: 720 } }
             : { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: "environment" };
-        
+
         webcamStream = await navigator.mediaDevices.getUserMedia({
             video: videoConstraints,
             audio: false,
@@ -312,7 +331,7 @@ async function initializeCameras() {
 async function enumerateCameraDevices() {
     let cameras = await navigator.mediaDevices.enumerateDevices();
 
-    videoSourceSelector.innerHTML = '';
+    videoSourceSelectorEl.innerHTML = '';
 
     for (let i = 0; i < cameras.length; i++) {
         let camera = cameras[i];
@@ -320,7 +339,7 @@ async function enumerateCameraDevices() {
             let option = document.createElement('option');
             option.value = camera.deviceId;
             option.text = camera.label || `Camera ${i + 1}`;
-            videoSourceSelector.appendChild(option);
+            videoSourceSelectorEl.appendChild(option);
         }
     }
 }
@@ -365,6 +384,19 @@ async function handleFileUpload(file) {
     statusEl.classList.add("success");
 }
 
+segmentationMaskColorPickerEl.addEventListener('change', (event) => {
+    const hexValue = event.target.value;
+    currentMaskColor = hexValue;
+});
+
+confidencePickerEl.addEventListener('change', (event) => {
+    let confidence = event.target.value;
+    currentConfidence = confidence;
+});
+
+segmentationMaskColorPickerEl.value = currentMaskColor;
+confidencePickerEl.value = currentConfidence;
+
 // Initialize
 async function main() {
     try {
@@ -401,9 +433,9 @@ async function main() {
 
         webcamBtn.addEventListener("click", startWebcam);
         stopBtn.addEventListener("click", stopWebcam);
-        
+
         // Handle camera selection change
-        videoSourceSelector.addEventListener("change", async () => {
+        videoSourceSelectorEl.addEventListener("change", async () => {
             if (webcamStream) {
                 stopWebcam();
                 await startWebcam();
