@@ -8,6 +8,8 @@ export default defineConfig({
       'Cross-Origin-Opener-Policy': 'same-origin',
     },
   },
+    root: 'src',
+    publicDir: '../public',
   optimizeDeps: {
     exclude: ['onnxruntime-web']
   },
