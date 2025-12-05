@@ -315,6 +315,15 @@ segmentationMaskColorPickerEl.addEventListener('change', (event) => {
 
 segmentationMaskColorPickerEl.value = currentMaskColor;
 
+// Handle preset color buttons
+document.querySelectorAll('.preset-color').forEach(button => {
+    button.addEventListener('click', (event) => {
+        const color = event.target.getAttribute('data-color');
+        currentMaskColor = color;
+        segmentationMaskColorPickerEl.value = color;
+    });
+});
+
 // Initialize canvas to full screen
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
