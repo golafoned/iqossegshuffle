@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IQOS Segmentation</title>
+  <link rel="stylesheet" href="segmentation-page.css">
+</head>
+
+<body>
+  <!-- Full-screen canvas for camera + segmentation -->
+  <canvas id="canvas"></canvas>
+  
+  <!-- Video element (hidden, used as source) -->
+  <video id="video" class="hidden" autoplay playsinline muted></video>
+
+  <!-- Product info card (top left) -->
+  <div class="product-info-card">
+    <div class="product-name">IQOS ILUMA PRIME</div>
+    <div class="product-color">Jade Green</div>
+  </div>
+
+  <!-- Back button (top left, below card) -->
+  <a href="../index.html" class="back-button" title="Back to Home">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </a>
+
+  <!-- Minimal status overlay -->
+  <div id="status" class="status-overlay">Loading...</div>
+
+  <!-- Color picker overlay (right middle) -->
+  <div class="color-picker-overlay">
+    <input type="color" id="segmentationMaskColorPicker" title="Mask Color">
+    <div class="preset-colors">
+      <button class="preset-color" data-color="#00ff00" style="background: #00ff00;" title="Green"></button>
+      <button class="preset-color" data-color="#ff00ff" style="background: #ff00ff;" title="Magenta"></button>
+      <button class="preset-color" data-color="#00ffff" style="background: #00ffff;" title="Cyan"></button>
+    </div>
+  </div>
+
+  <!-- Hidden elements for functionality -->
+  <select id="videosource" style="display:none;"></select>
+  <span id="ep" style="display:none;"></span>
+  <span id="fps" style="display:none;"></span>
+  <span id="inferenceTime" style="display:none;"></span>
+
+  <!-- Load ONNX Runtime UMD bundle from CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.19.2/dist/ort.min.js"></script>
+  <script type="module" src="./segmentation-page.js"></script>
+</body>
+
+</html>

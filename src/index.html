@@ -2,49 +2,26 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>IQOS Segmentation</title>
-  <link rel="stylesheet" href="styles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IQOS Iluma Prime Configurator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Oswald:wght@200..700&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="langing-page.css">
 </head>
 
 <body>
-  <h1>🔍 IQOS Segmentation</h1>
-
-  <div class="container">
-    <div class="controls">
-      <input id="fileInput" type="file" accept="image/*" />
-      <button id="webcamBtn">📹 Start Webcam</button>
-      <button id="stopBtn" class="hidden">⏹️ Stop</button>
+    <div class="container">
+        <h1>Welcome to IQOS Iluma<br>Prime Configurator</h1>
+        <div class="image-wrapper">
+            <img src="../assets/iqos-landing-page.png" alt="IQOS Devices">
+        </div>
+        <button class="explore-btn"><a href="../segmentation-page/segmentation-page.html">Explore Your IQOS</a></button>
+        <span class="version">V 0.0.1</span>
     </div>
-
-    <div id="status" class="status">Loading model...</div>
-
-    <div class="canvas-wrapper">
-      <canvas id="canvas" width="320" height="320"></canvas>
-    </div>
-
-    <video id="video" class="hidden" autoplay playsinline muted></video>
-
-    <div class="info">
-      <div style="margin-bottom: 12px;">
-        <label for="videosource" style="display: block; margin-bottom: 6px; font-weight: 600; color: #555;">📹
-          Camera:</label>
-        <select id="videosource"></select>
-      </div>
-      <div>
-        <input type="color" id="segmentationMaskColorPicker">
-        <input type="range" id="confidencePicker" min="0" max="1" step="0.01">
-      </div>
-      <strong>Execution Provider:</strong> <span id="ep">-</span><br>
-      <strong>FPS:</strong> <span id="fps">-</span><br>
-      <strong>Inference Time:</strong> <span id="inferenceTime">-</span>
-    </div>
-  </div>
-
-  <!-- Load ONNX Runtime UMD bundle from CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.19.2/dist/ort.min.js"></script>
-  <script type="module" src="/main.js"></script>
 </body>
 
 </html>

@@ -1,28 +1,18 @@
 const MODEL_SIZE = 224;
 const MODEL_URL = "/iqos_seg_224_v3.onnx";
 
-const fileInput = document.getElementById("fileInput");
-const webcamBtn = document.getElementById("webcamBtn");
-const stopBtn = document.getElementById("stopBtn");
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d", { willReadFrequently: true });
 const video = document.getElementById("video");
 const statusEl = document.getElementById("status");
-const epEl = document.getElementById("ep");
-const fpsEl = document.getElementById("fps");
-const inferenceTimeEl = document.getElementById("inferenceTime");
-
-const videoSourceSelectorEl = document.getElementById('videosource');
 const segmentationMaskColorPickerEl = document.getElementById('segmentationMaskColorPicker');
-const confidencePickerEl = document.getElementById('confidencePicker');
 
 let session = null;
-let ep = "wasm";
 let webcamStream = null;
 let animationId = null;
 let lastFrameTime = 0;
 
-let currentMaskColor = '#ff0000';
+let currentMaskColor = '#00ff00';
 let currentConfidence = 0.5;
 
 // Offscreen canvas for model input resizing
@@ -242,18 +232,37 @@ async function runInference(sourceElement) {
     // Create overlay on model canvas
     const overlayData = createMaskOverlay(smoothedMask);
 
-    // Put the mask overlay onto the model canvas (replacing the resized video frame)
+    // Put the mask overlay onto the model canvas
     modelCtx.putImageData(overlayData, 0, 0);
 
-    // Draw the mask from modelCanvas to main canvas (upscale to source resolution)
-    // Note: main canvas should already have the source frame drawn
-    ctx.drawImage(modelCanvas, 0, 0, canvas.width, canvas.height);
+    // Draw the mask overlay from modelCanvas to main canvas (same dimensions as video)
+    // This ensures the mask covers the entire screen properly
+    if (webcamStream) {
+        const videoAspect = video.videoWidth / video.videoHeight;
+        const canvasAspect = canvas.width / canvas.height;
+        
+        let drawWidth, drawHeight, offsetX, offsetY;
+        
+        if (videoAspect > canvasAspect) {
+            drawHeight = canvas.height;
+            drawWidth = drawHeight * videoAspect;
+            offsetX = (canvas.width - drawWidth) / 2;
+            offsetY = 0;
+        } else {
+            drawWidth = canvas.width;
+            drawHeight = drawWidth / videoAspect;
+            offsetX = 0;
+            offsetY = (canvas.height - drawHeight) / 2;
+        }
+        
+        ctx.drawImage(modelCanvas, offsetX, offsetY, drawWidth, drawHeight);
+    } else {
+        // For static images, just draw to full canvas
+        ctx.drawImage(modelCanvas, 0, 0, canvas.width, canvas.height);
+    }
 
     const t1 = performance.now();
-    const inferenceTime = (t1 - t0).toFixed(1);
-    inferenceTimeEl.textContent = `${inferenceTime}ms`;
-
-    return inferenceTime;
+    return (t1 - t0).toFixed(1);
 }
 
 // Webcam loop
@@ -263,14 +272,10 @@ async function webcamLoop() {
     const now = performance.now();
     const elapsed = now - lastFrameTime;
 
-    // Resize canvas to match video resolution if needed
-    if (
-        video.videoWidth &&
-        (canvas.width !== video.videoWidth ||
-            canvas.height !== video.videoHeight)
-    ) {
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
+    // Resize canvas to match viewport (full screen)
+    if (canvas.width !== window.innerWidth || canvas.height !== window.innerHeight) {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
     }
 
     // Draw full resolution video frame to canvas
@@ -279,12 +284,6 @@ async function webcamLoop() {
     // Run inference (pass video element as source)
     await runInference(video);
 
-    // Calculate FPS
-    if (elapsed > 0) {
-        const fps = Math.round(1000 / elapsed);
-        fpsEl.textContent = fps;
-    }
-
     lastFrameTime = now;
     animationId = requestAnimationFrame(webcamLoop);
 }
@@ -292,157 +291,64 @@ async function webcamLoop() {
 // Start webcam
 async function startWebcam() {
     try {
-        const selectedDeviceId = videoSourceSelectorEl.value;
-        const videoConstraints = selectedDeviceId && selectedDeviceId !== ''
-            ? { deviceId: selectedDeviceId, width: { ideal: 1280 }, height: { ideal: 720 } }
-            : { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: "environment" };
-
         webcamStream = await navigator.mediaDevices.getUserMedia({
-            video: videoConstraints,
+            video: { width: { ideal: 1920 }, height: { ideal: 1080 }, facingMode: "environment" },
             audio: false,
         });
         video.srcObject = webcamStream;
-        video.classList.add("hidden");
-
         await video.play();
 
-        webcamBtn.classList.add("hidden");
-        stopBtn.classList.remove("hidden");
-        fileInput.disabled = true;
-
-        statusEl.textContent = "Webcam active - running inference...";
+        statusEl.textContent = "";
         statusEl.classList.add("success");
 
         lastFrameTime = performance.now();
         webcamLoop();
     } catch (err) {
-        statusEl.textContent = `Webcam error: ${err.message}`;
+        statusEl.textContent = `Camera error: ${err.message}`;
         statusEl.classList.add("error");
     }
 }
 
-async function initializeCameras() {
-    const tempStream = await navigator.mediaDevices.getUserMedia({ video: true });
-    tempStream.getTracks().forEach(track => track.stop());
-
-    await enumerateCameraDevices();
-}
-
-async function enumerateCameraDevices() {
-    let cameras = await navigator.mediaDevices.enumerateDevices();
-
-    videoSourceSelectorEl.innerHTML = '';
-
-    for (let i = 0; i < cameras.length; i++) {
-        let camera = cameras[i];
-        if (camera.kind === 'videoinput') {
-            let option = document.createElement('option');
-            option.value = camera.deviceId;
-            option.text = camera.label || `Camera ${i + 1}`;
-            videoSourceSelectorEl.appendChild(option);
-        }
-    }
-}
-
-// Stop webcam
-function stopWebcam() {
-    if (webcamStream) {
-        webcamStream.getTracks().forEach((track) => track.stop());
-        webcamStream = null;
-    }
-    if (animationId) {
-        cancelAnimationFrame(animationId);
-        animationId = null;
-    }
-    video.classList.add("hidden");
-    video.srcObject = null;
-    webcamBtn.classList.remove("hidden");
-    stopBtn.classList.add("hidden");
-    fileInput.disabled = false;
-
-    statusEl.textContent = "Webcam stopped";
-    statusEl.classList.remove("success");
-    fpsEl.textContent = "-";
-}
-
-// Handle file upload
-async function handleFileUpload(file) {
-    if (!file) return;
-
-    const bmp = await createImageBitmap(file);
-
-    // Resize canvas to match image resolution
-    canvas.width = bmp.width;
-    canvas.height = bmp.height;
-
-    // Draw full resolution image
-    ctx.drawImage(bmp, 0, 0);
-
-    statusEl.textContent = "Running inference...";
-    await runInference(bmp);
-    statusEl.textContent = "Inference complete!";
-    statusEl.classList.add("success");
-}
-
 segmentationMaskColorPickerEl.addEventListener('change', (event) => {
-    const hexValue = event.target.value;
-    currentMaskColor = hexValue;
-});
-
-confidencePickerEl.addEventListener('change', (event) => {
-    let confidence = event.target.value;
-    currentConfidence = confidence;
+    currentMaskColor = event.target.value;
 });
 
 segmentationMaskColorPickerEl.value = currentMaskColor;
-confidencePickerEl.value = currentConfidence;
+
+// Handle preset color buttons
+document.querySelectorAll('.preset-color').forEach(button => {
+    button.addEventListener('click', (event) => {
+        const color = event.target.getAttribute('data-color');
+        currentMaskColor = color;
+        segmentationMaskColorPickerEl.value = color;
+    });
+});
+
+// Initialize canvas to full screen
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 
 // Initialize
 async function main() {
     try {
-        statusEl.textContent = "Loading ONNX Runtime...";
+        statusEl.textContent = "Loading...";
 
         // Wait for CDN script to load
         while (typeof ort === "undefined") {
             await new Promise((resolve) => setTimeout(resolve, 100));
         }
 
-        await initializeCameras();
-
         const ep = "wasm";
-        epEl.textContent = ep.toUpperCase();
-
-        // Configure WASM paths
         configureWasm(ort, ep);
-
-        statusEl.textContent = "Loading model...";
 
         session = await ort.InferenceSession.create(MODEL_URL, {
             executionProviders: [ep],
         });
 
-        statusEl.textContent =
-            "✅ Model loaded! Upload an image or start webcam.";
-        statusEl.classList.add("success");
-
-        // Event listeners
-        fileInput.addEventListener("change", async () => {
-            const file = fileInput.files?.[0];
-            if (file) await handleFileUpload(file);
-        });
-
-        webcamBtn.addEventListener("click", startWebcam);
-        stopBtn.addEventListener("click", stopWebcam);
-
-        // Handle camera selection change
-        videoSourceSelectorEl.addEventListener("change", async () => {
-            if (webcamStream) {
-                stopWebcam();
-                await startWebcam();
-            }
-        });
+        // Auto-start camera
+        await startWebcam();
     } catch (err) {
-        statusEl.textContent = `❌ Error: ${err.message}`;
+        statusEl.textContent = `Error: ${err.message}`;
         statusEl.classList.add("error");
         console.error(err);
     }

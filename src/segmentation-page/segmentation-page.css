@@ -1,0 +1,216 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background: white;
+    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+}
+
+/* Full-screen canvas background */
+#canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    object-fit: cover;
+    z-index: 1;
+}
+
+/* Hidden video element */
+video {
+    display: none;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Product info card (top center) */
+.product-info-card {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+    background: rgba(148, 142, 133, 0.75);
+    backdrop-filter: blur(8px);
+    border-radius: 8px;
+    padding: 10px 24px;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.product-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: white;
+    letter-spacing: 0.8px;
+    margin-bottom: 1px;
+    text-transform: uppercase;
+}
+
+.product-color {
+    font-size: 11px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* Back button (top left, below card) */
+.back-button {
+    position: fixed;
+    top: 90px;
+    left: 20px;
+    z-index: 100;
+    width: 44px;
+    height: 44px;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(10px);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    text-decoration: none;
+}
+
+.back-button:hover {
+    background: rgba(0, 0, 0, 0.8);
+    transform: scale(1.1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.back-button svg {
+    width: 24px;
+    height: 24px;
+}
+
+/* Minimal status overlay */
+.status-overlay {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+    padding: 8px 20px;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    color: white;
+    font-weight: 500;
+    font-size: 13px;
+    transition: opacity 0.3s ease;
+    opacity: 0.8;
+    pointer-events: none;
+}
+
+.status-overlay.error {
+    background: rgba(244, 67, 54, 0.7);
+}
+
+.status-overlay.success {
+    opacity: 0;
+}
+
+/* Color picker overlay - right middle */
+.color-picker-overlay {
+    position: fixed;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 100;
+    opacity: 0.6;
+    transition: opacity 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+}
+
+.color-picker-overlay:hover {
+    opacity: 1;
+}
+
+/* Preset colors container */
+.preset-colors {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 4px;
+}
+
+/* Preset color buttons */
+.preset-color {
+    width: 28px;
+    height: 28px;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    padding: 0;
+    outline: none;
+}
+
+.preset-color:hover {
+    transform: scale(1.15);
+    border-color: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.35);
+}
+
+.preset-color:active {
+    transform: scale(0.95);
+}
+
+/* Subtle color picker */
+input[type="color"] {
+    width: 36px;
+    height: 36px;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-radius: 50%;
+    cursor: pointer;
+    background: transparent;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+input[type="color"]:hover {
+    border-color: rgba(255, 255, 255, 0.8);
+    transform: scale(1.15);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+input[type="color"]::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+
+input[type="color"]::-webkit-color-swatch {
+    border: none;
+    border-radius: 50%;
+}
+
+input[type="color"]::-moz-color-swatch {
+    border: none;
+    border-radius: 50%;
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+    .color-picker-overlay {
+        right: 15px;
+    }
+    
+    input[type="color"] {
+        width: 32px;
+        height: 32px;
+    }
+}
