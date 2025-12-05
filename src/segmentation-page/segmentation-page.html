@@ -9,38 +9,25 @@
 </head>
 
 <body>
-  <h1>🔍 IQOS Segmentation</h1>
+  <!-- Full-screen canvas for camera + segmentation -->
+  <canvas id="canvas"></canvas>
+  
+  <!-- Video element (hidden, used as source) -->
+  <video id="video" class="hidden" autoplay playsinline muted></video>
 
-  <div class="container">
-    <div class="controls">
-      <input id="fileInput" type="file" accept="image/*" />
-      <button id="webcamBtn">📹 Start Webcam</button>
-      <button id="stopBtn" class="hidden">⏹️ Stop</button>
-    </div>
+  <!-- Minimal status overlay -->
+  <div id="status" class="status-overlay">Loading...</div>
 
-    <div id="status" class="status">Loading model...</div>
-
-    <div class="canvas-wrapper">
-      <canvas id="canvas" width="320" height="320"></canvas>
-    </div>
-
-    <video id="video" class="hidden" autoplay playsinline muted></video>
-
-    <div class="info">
-      <div style="margin-bottom: 12px;">
-        <label for="videosource" style="display: block; margin-bottom: 6px; font-weight: 600; color: #555;">📹
-          Camera:</label>
-        <select id="videosource"></select>
-      </div>
-      <div>
-        <input type="color" id="segmentationMaskColorPicker">
-        <input type="range" id="confidencePicker" min="0" max="1" step="0.01">
-      </div>
-      <strong>Execution Provider:</strong> <span id="ep">-</span><br>
-      <strong>FPS:</strong> <span id="fps">-</span><br>
-      <strong>Inference Time:</strong> <span id="inferenceTime">-</span>
-    </div>
+  <!-- Color picker overlay (right middle) -->
+  <div class="color-picker-overlay">
+    <input type="color" id="segmentationMaskColorPicker" title="Mask Color">
   </div>
+
+  <!-- Hidden elements for functionality -->
+  <select id="videosource" style="display:none;"></select>
+  <span id="ep" style="display:none;"></span>
+  <span id="fps" style="display:none;"></span>
+  <span id="inferenceTime" style="display:none;"></span>
 
   <!-- Load ONNX Runtime UMD bundle from CDN -->
   <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.19.2/dist/ort.min.js"></script>
