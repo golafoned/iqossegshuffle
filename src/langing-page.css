@@ -75,6 +75,10 @@ h1 {
     transform: translateY(0);
 }
 
+.explore-btn a {
+    all: unset;
+}
+
 .version {
     font-size: 11px;
     color: #999999;
